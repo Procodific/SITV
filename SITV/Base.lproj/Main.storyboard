@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="14E46" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="vXZ-lx-hvc">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="ufC-wZ-h7g">
+            <objects>
+                <viewController id="vXZ-lx-hvc" customClass="ViewController" customModule="SITV" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="iCm-wc-A72"/>
+                        <viewControllerLayoutGuide type="bottom" id="nU5-6E-pqx"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="kh9-bI-dsS" userLabel="MainView">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <searchBar contentMode="redraw" text="Puebla de los Angeles, Mexico" prompt="Ingrese un lugar o dirección" placeholder="Lugar" translatesAutoresizingMaskIntoConstraints="NO" id="rvi-M3-7xN">
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="75"/>
+                                <color key="tintColor" red="0.1333333333" green="0.73725490199999999" blue="0.87843137250000003" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="barTintColor" red="0.74901960784313726" green="0.74901960784313726" blue="0.76862745098039209" alpha="1" colorSpace="calibratedRGB"/>
+                                <textInputTraits key="textInputTraits" autocorrectionType="yes" spellCheckingType="yes"/>
+                                <connections>
+                                    <outlet property="delegate" destination="vXZ-lx-hvc" id="xPQ-N6-aCp"/>
+                                </connections>
+                            </searchBar>
+                            <toolbar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pLt-i8-Oih">
+                                <rect key="frame" x="0.0" y="556" width="600" height="44"/>
+                                <color key="backgroundColor" red="0.95294117647058818" green="0.25755911487498945" blue="0.19539696101519094" alpha="1" colorSpace="calibratedRGB"/>
+                                <items>
+                                    <barButtonItem enabled="NO" image="prev32" id="m54-lq-q9A">
+                                        <connections>
+                                            <action selector="prevBtnClicked:" destination="Jjz-Jx-0zk" id="tPj-wP-jyE"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem systemItem="flexibleSpace" id="9q9-yK-UO3"/>
+                                    <barButtonItem enabled="NO" image="next32" id="Ov5-jU-kOA">
+                                        <connections>
+                                            <action selector="nextBtnClicked:" destination="Jjz-Jx-0zk" id="EIq-tI-fw8"/>
+                                        </connections>
+                                    </barButtonItem>
+                                </items>
+                                <color key="barTintColor" red="0.80000000000000004" green="0.8901960784313725" blue="0.95294117647058818" alpha="1" colorSpace="calibratedRGB"/>
+                            </toolbar>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Indicaciones" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZGm-7X-ppF">
+                                <rect key="frame" x="249" y="565" width="103" height="25"/>
+                                <fontDescription key="fontDescription" name="AvenirNext-Regular" family="Avenir Next" pointSize="18"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Jjz-Jx-0zk" userLabel="Mapa ArcGIS" customClass="AGSMapViewController" customModule="SITV" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="75" width="600" height="481"/>
+                                <connections>
+                                    <outlet property="directionsLabel" destination="ZGm-7X-ppF" id="37u-BN-eKC"/>
+                                    <outlet property="nextBtn" destination="Ov5-jU-kOA" id="xkg-WK-vsI"/>
+                                    <outlet property="prevBtn" destination="m54-lq-q9A" id="sDb-YX-i7M"/>
+                                    <outlet property="searchBar" destination="rvi-M3-7xN" id="0sL-gQ-014"/>
+                                </connections>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" red="0.90980392156862744" green="0.90980392156862744" blue="0.90980392156862744" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstItem="nU5-6E-pqx" firstAttribute="top" secondItem="pLt-i8-Oih" secondAttribute="bottom" id="7ai-7W-wlu"/>
+                            <constraint firstItem="rvi-M3-7xN" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="7zA-8c-KhE"/>
+                            <constraint firstAttribute="centerX" secondItem="ZGm-7X-ppF" secondAttribute="centerX" id="AHj-WJ-ycc"/>
+                            <constraint firstAttribute="trailing" secondItem="pLt-i8-Oih" secondAttribute="trailing" id="LCw-6Z-vqX"/>
+                            <constraint firstItem="rvi-M3-7xN" firstAttribute="top" secondItem="kh9-bI-dsS" secondAttribute="top" id="Lud-GP-qWf"/>
+                            <constraint firstAttribute="trailing" secondItem="rvi-M3-7xN" secondAttribute="trailing" id="MnI-El-dSx"/>
+                            <constraint firstItem="pLt-i8-Oih" firstAttribute="top" secondItem="Jjz-Jx-0zk" secondAttribute="bottom" id="T36-1x-UKa"/>
+                            <constraint firstItem="pLt-i8-Oih" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="fAN-ES-EVG"/>
+                            <constraint firstAttribute="trailing" secondItem="Jjz-Jx-0zk" secondAttribute="trailing" id="n0T-3q-xN1"/>
+                            <constraint firstItem="Jjz-Jx-0zk" firstAttribute="top" secondItem="rvi-M3-7xN" secondAttribute="bottom" id="naO-uS-pab"/>
+                            <constraint firstItem="Jjz-Jx-0zk" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="pCg-hz-DnP"/>
+                            <constraint firstItem="nU5-6E-pqx" firstAttribute="top" secondItem="ZGm-7X-ppF" secondAttribute="bottom" constant="10" id="uPm-IK-GEN"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="mapView" destination="Jjz-Jx-0zk" id="LB6-al-Car"/>
+                        <outlet property="searchBar" destination="rvi-M3-7xN" id="NX6-qm-EAZ"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="243" y="321"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="next32" width="32" height="32"/>
+        <image name="prev32" width="32" height="32"/>
+    </resources>
+</document>
