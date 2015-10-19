@@ -13,7 +13,8 @@ import ArcGIS
 class ViewController: UIViewController, UISearchBarDelegate {
     
     @IBOutlet var mapView: AGSMapViewController!
-    @IBOutlet weak var searchBar: UISearchBar!
+    @IBOutlet weak var originSearchBar: UISearchBar!
+    @IBOutlet weak var destinationSearchBar: UISearchBar!
     
     override func prefersStatusBarHidden() -> Bool {
         return true
@@ -41,7 +42,7 @@ class ViewController: UIViewController, UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(searchBar: UISearchBar) {
         searchBar.resignFirstResponder() // Esconder el teclado
-        self.mapView.startFunc() // Iniciar (Ver clase AGSMapViewController.swift)
+        self.mapView.startFunc(searchBar.text!) // Iniciar (Ver clase AGSMapViewController.swift)
     }
     
 }

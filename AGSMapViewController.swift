@@ -23,15 +23,20 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     var access_token: NSString! // Access_token a obtener de la aplicación ArcGIS
     
     // OUTLETS DEL UIVIEW
-    @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var directionsLabel: UILabel!
     @IBOutlet weak var prevBtn: UIBarButtonItem!
     @IBOutlet weak var nextBtn: UIBarButtonItem!
+    @IBOutlet weak var routeButton: UIButton!
     
-    // Elementos para geolocalización y rutas de dirección
-    var graphicLayer: AGSGraphicsLayer!
-    var locator: AGSLocator!
+    var graphicLayer: AGSGraphicsLayer! // Layer de todos los gráficos
+    var locator: AGSLocator! // Locator de ArcGIS
     var calloutTemplate: AGSCalloutTemplate!
+    
+    // Origen y Destino
+    var originLocation: AGSGeometry!
+    var destinationLocation: AGSGeometry!
+    
+    // Elementos de rutas
     var routeTask: AGSRouteTask!
     var routeResult: AGSRouteResult!
     var currentDirectionGraphic: AGSDirectionGraphic!
@@ -64,18 +69,18 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     // Exito del web service
     func operation(op:NSOperation, didSucceedWithResponse json:NSDictionary) {
         access_token = json["access_token"] as! NSString // Obtiene el token del JSON
-        println("Got token: \(access_token)") // Muestra el access_token
+        print("Got token: \(access_token)") // Muestra el access_token
         self.queue.cancelAllOperations() // Deja de ejecutarla en background
     }
     
     // Error del web service
     func operation(op:NSOperation, didFailWithError error:NSError) {
-        println("Error at web service: \(error)")
+        print("Error at web service: \(error)")
         self.queue.cancelAllOperations() // Deja de ejecutarla en background
     }
     
     // Función inicial
-    func startFunc() {
+    func startFunc(text: String) {
         
         // Si no hay un layer
         if self.graphicLayer == nil {
@@ -89,9 +94,6 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
             
             let renderer = AGSSimpleRenderer(symbol: pushpin) // Renderer con el marker
             self.graphicLayer.renderer = renderer // Asigna el renderer al layer
-        }
-        else { // Existe un layer!
-            self.graphicLayer.removeAllGraphics() // Limpia el layer ( elimina los resultados anteriores)
         }
         
         // Si no hay un locator
@@ -107,7 +109,7 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
         
         // Parametros del locator (desde donde buscar)
         let params = AGSLocatorFindParameters()
-        params.text = searchBar.text
+        params.text = text
         params.outFields = ["*"]
         params.outSpatialReference = self.spatialReference
         params.location = AGSPoint(x: 0, y: 0, spatialReference: nil)
@@ -126,19 +128,22 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
                 self.calloutTemplate = AGSCalloutTemplate()
                 self.calloutTemplate.titleTemplate = "${Match_addr}"
                 self.calloutTemplate.detailTemplate = "${DisplayY}\u{00b0} ${DisplayX}\u{00b0}"
-                // Assign the callout template to the layer so that all graphics within this layer
-                // display their information in the callout in the same manner
                 self.graphicLayer.calloutDelegate = self.calloutTemplate
             }
             
-            // Agrega el grafico de cada resultado
+            // Si no hay origen ni destino
+            if originLocation == nil && destinationLocation == nil {
+                self.graphicLayer.removeAllGraphics()
+            }
+            
+            // Agrega grafico de cada resultado
             for result in results as! [AGSLocatorFindResult] {
                 self.graphicLayer.addGraphic(result.graphic)
             }
             
             // Zoom de los resultados
             let extent = self.graphicLayer.fullEnvelope.mutableCopy() as! AGSMutableEnvelope
-            extent.expandByFactor(2.0)
+            extent.expandByFactor(4.0)
             zoomToEnvelope(extent, animated: true)
         }
         // No hay resultados
@@ -147,15 +152,29 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
         }
     }
     
+    @IBAction func routeButtonClicked(sender: AnyObject) {
+        self.routeTo(originLocation, destination: destinationLocation) // Trazar ruta, se pasa el AGSGeometry
+        originLocation = nil;
+        destinationLocation = nil;
+    }
+
     // Evento click en "i" (botón), accessory de los graphics
     func didClickAccessoryButtonForCallout(callout: AGSCallout!) {
         let graphic = callout.representedObject as! AGSGraphic // Obtiene el objeto del click
-        let destinationLocation = graphic.geometry // Conseguir el AGSGeometry
-        self.routeTo(destinationLocation) // Trazar ruta, se pasa el AGSGeometry
+        
+        if originLocation == nil {
+            self.graphicLayer.removeAllGraphics();
+            self.graphicLayer.addGraphic(graphic)
+            originLocation = graphic.geometry // Conseguir el AGSGeometry
+        }
+        else {
+            self.graphicLayer.addGraphic(graphic)
+            destinationLocation = graphic.geometry // Conseguir el AGSGeometry
+        }
     }
     
     // Funcion que traza ruta dado un destino
-    func routeTo(destination: AGSGeometry) {
+    func routeTo(origin: AGSGeometry, destination: AGSGeometry) {
         let params = AGSRouteTaskParameters() // Parametros del RouteTask
         
         // Ambos puntos se obtienen como Stops, y debe cambiarse
@@ -165,17 +184,23 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
         let lastStop = AGSStopGraphic(geometry: destination, symbol: nil, attributes: nil)
         let second_point = AGSGeometryEngine.defaultGeometryEngine().projectGeometry(lastStop.geometry, toSpatialReference: AGSSpatialReference.wgs84SpatialReference()) as! AGSPoint
         
+        // Primer punto
+        let firstStop = AGSStopGraphic(geometry: origin, symbol: nil, attributes: nil)
+        let first_point = AGSGeometryEngine.defaultGeometryEngine().projectGeometry(firstStop.geometry, toSpatialReference: AGSSpatialReference.wgs84SpatialReference()) as! AGSPoint
+        
+        /*
         // Segundo punto
         let firstStop = AGSStopGraphic(geometry: self.locationDisplay.mapLocation(), symbol: nil, attributes: nil)
         let first_point = AGSGeometryEngine.defaultGeometryEngine().projectGeometry(firstStop.geometry, toSpatialReference: AGSSpatialReference.wgs84SpatialReference()) as! AGSPoint
-    
+        */
+        
         params.setStopsWithFeatures([firstStop, lastStop])
         
         // Si no hay un routeTask
         if self.routeTask == nil {
             let serviceURL = "http://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve?token=\(self.access_token)&stops=\(first_point.x),\(first_point.y);\(second_point.x),\(second_point.y)&directionsLanguage=es&f=json"
             
-            println(serviceURL)
+            print(serviceURL)
             
             self.routeTask = AGSRouteTask(URL: NSURL(string: serviceURL)) // RouteTask con el servicio
             self.routeTask.delegate = self // Delegate del routeTask
@@ -229,14 +254,12 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
                 self.prevBtn.enabled = false
                 self.currentDirectionGraphic = nil
                 self.zoomToGeometry(self.routeResult.routeGraphic.geometry, withPadding: 100, animated: true)
-                
-                return
             }
         }
-        
         // No hubo rutas
-        UIAlertView(title: "Sin rutas", message: "No se encontraron rutas", delegate: nil, cancelButtonTitle: "OK").show()
-        
+        else {
+            UIAlertView(title: "Sin rutas", message: "No se encontraron rutas", delegate: nil, cancelButtonTitle: "OK").show()
+        }
     }
     
     // Botón prev
@@ -244,7 +267,7 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
         var index = 0
         
         if self.currentDirectionGraphic != nil {
-            if let currentIndex = find(self.routeResult.directions.graphics as! [AGSDirectionGraphic], self.currentDirectionGraphic) {
+            if let currentIndex = (self.routeResult.directions.graphics as! [AGSDirectionGraphic]).indexOf(self.currentDirectionGraphic) {
                 index = currentIndex - 1
             }
         }
@@ -256,7 +279,7 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
         var index = 0
         
         if self.currentDirectionGraphic != nil {
-            if let currentIndex = find(self.routeResult.directions.graphics as! [AGSDirectionGraphic], self.currentDirectionGraphic) {
+            if let currentIndex = (self.routeResult.directions.graphics as! [AGSDirectionGraphic]).indexOf(self.currentDirectionGraphic) {
                 index = currentIndex + 1
             }
         }

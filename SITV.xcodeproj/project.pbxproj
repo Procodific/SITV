@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		8C10A38C1B713797003E54C3 /* AGSMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C10A38B1B713796003E54C3 /* AGSMapViewController.swift */; };
+		8C409B961BC6D7A5001FCD4C /* plaza_dorada_puebla.gpx in Resources */ = {isa = PBXBuildFile; fileRef = 8C409B951BC6D7A5001FCD4C /* plaza_dorada_puebla.gpx */; settings = {ASSET_TAGS = (); }; };
 		8C96E65E1B6D45FD00F181E7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C96E65D1B6D45FD00F181E7 /* AppDelegate.swift */; };
 		8C96E6601B6D45FD00F181E7 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C96E65F1B6D45FD00F181E7 /* ViewController.swift */; };
 		8C96E6631B6D45FD00F181E7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8C96E6611B6D45FD00F181E7 /* Main.storyboard */; };
@@ -15,7 +16,6 @@
 		8C96E6681B6D45FD00F181E7 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8C96E6661B6D45FD00F181E7 /* LaunchScreen.xib */; };
 		8C96E6741B6D45FD00F181E7 /* SITVTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C96E6731B6D45FD00F181E7 /* SITVTests.swift */; };
 		8C96E67E1B6D46BB00F181E7 /* ArcGIS.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 8C96E67D1B6D46BB00F181E7 /* ArcGIS.bundle */; };
-		8C96E6801B6D51AC00F181E7 /* BluePushpin.png in Resources */ = {isa = PBXBuildFile; fileRef = 8C96E67F1B6D51AC00F181E7 /* BluePushpin.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -30,6 +30,7 @@
 
 /* Begin PBXFileReference section */
 		8C10A38B1B713796003E54C3 /* AGSMapViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AGSMapViewController.swift; path = ../AGSMapViewController.swift; sourceTree = "<group>"; };
+		8C409B951BC6D7A5001FCD4C /* plaza_dorada_puebla.gpx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = plaza_dorada_puebla.gpx; path = ../../../Downloads/plaza_dorada_puebla.gpx; sourceTree = "<group>"; };
 		8C96E6581B6D45FD00F181E7 /* SITV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SITV.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C96E65C1B6D45FD00F181E7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8C96E65D1B6D45FD00F181E7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -41,7 +42,6 @@
 		8C96E6721B6D45FD00F181E7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8C96E6731B6D45FD00F181E7 /* SITVTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SITVTests.swift; sourceTree = "<group>"; };
 		8C96E67D1B6D46BB00F181E7 /* ArcGIS.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = ArcGIS.bundle; path = ../../../Library/SDKs/ArcGIS/iOS/ArcGIS.framework/Versions/Current/Resources/ArcGIS.bundle; sourceTree = "<group>"; };
-		8C96E67F1B6D51AC00F181E7 /* BluePushpin.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = BluePushpin.png; path = ../../../../Downloads/BluePushpin.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +65,7 @@
 		8C96E64F1B6D45FD00F181E7 = {
 			isa = PBXGroup;
 			children = (
+				8C409B951BC6D7A5001FCD4C /* plaza_dorada_puebla.gpx */,
 				8C96E65A1B6D45FD00F181E7 /* SITV */,
 				8C96E6701B6D45FD00F181E7 /* SITVTests */,
 				8C96E67D1B6D46BB00F181E7 /* ArcGIS.bundle */,
@@ -87,7 +88,6 @@
 				8C96E65D1B6D45FD00F181E7 /* AppDelegate.swift */,
 				8C96E65F1B6D45FD00F181E7 /* ViewController.swift */,
 				8C10A38B1B713796003E54C3 /* AGSMapViewController.swift */,
-				8C96E67F1B6D51AC00F181E7 /* BluePushpin.png */,
 				8C96E6611B6D45FD00F181E7 /* Main.storyboard */,
 				8C96E6641B6D45FD00F181E7 /* Images.xcassets */,
 				8C96E6661B6D45FD00F181E7 /* LaunchScreen.xib */,
@@ -165,7 +165,9 @@
 		8C96E6501B6D45FD00F181E7 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0640;
+				LastSwiftMigration = 0700;
+				LastSwiftUpdateCheck = 0700;
+				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Eric García";
 				TargetAttributes = {
 					8C96E6571B6D45FD00F181E7 = {
@@ -202,8 +204,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				8C96E6631B6D45FD00F181E7 /* Main.storyboard in Resources */,
+				8C409B961BC6D7A5001FCD4C /* plaza_dorada_puebla.gpx in Resources */,
 				8C96E6681B6D45FD00F181E7 /* LaunchScreen.xib in Resources */,
-				8C96E6801B6D51AC00F181E7 /* BluePushpin.png in Resources */,
 				8C96E67E1B6D46BB00F181E7 /* ArcGIS.bundle in Resources */,
 				8C96E6651B6D45FD00F181E7 /* Images.xcassets in Resources */,
 			);
@@ -288,6 +290,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -362,6 +365,7 @@
 					"-l",
 					"c++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.SuEric.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -381,6 +385,7 @@
 					"-l",
 					"c++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.SuEric.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -400,6 +405,7 @@
 				);
 				INFOPLIST_FILE = SITVTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "SuEric.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SITV.app/SITV";
 			};
@@ -415,6 +421,7 @@
 				);
 				INFOPLIST_FILE = SITVTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "SuEric.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SITV.app/SITV";
 			};
