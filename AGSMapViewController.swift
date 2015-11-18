@@ -27,6 +27,11 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     @IBOutlet weak var prevBtn: UIBarButtonItem!
     @IBOutlet weak var nextBtn: UIBarButtonItem!
     @IBOutlet weak var routeButton: UIButton!
+    @IBOutlet weak var originSearchBar: UISearchBar!
+    @IBOutlet weak var destinationSearchBar: UISearchBar!
+
+    var showAllResults : Bool = true
+    var firstGraphic : Bool = true;
     
     var graphicLayer: AGSGraphicsLayer! // Layer de todos los gráficos
     var locator: AGSLocator! // Locator de ArcGIS
@@ -117,34 +122,72 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
         self.locator.findWithParameters(params) // Ejecución del servicio geolocalización en background
     }
     
+    func searchPlace(text: String) {
+        // Si no hay un locator
+        if self.locator == nil {
+            // Crear el locator desde REST ArcGIS
+            // y asignar el delegate para escuchar eventos
+            
+            // URL del servicio de geolocalización
+            let url = NSURL(string: "http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer")
+            self.locator = AGSLocator(URL: url) // Locator con la url del servicio
+            self.locator.delegate = self // Asigna el delegate del locator
+        }
+        
+        // Parametros del locator (desde donde buscar)
+        let params = AGSLocatorFindParameters()
+        params.text = text
+        params.outFields = ["*"]
+        params.outSpatialReference = self.spatialReference
+        params.location = AGSPoint(x: 0, y: 0, spatialReference: nil)
+        
+        self.locator.findWithParameters(params) // Ejecución del servicio geolocalización en background
+    }
+    
     // Ejecución correcta del locator
     func locator(locator: AGSLocator!, operation op: NSOperation!, didFind results: [AnyObject]!) {
         
         // Si hay resultados
         if results != nil || results.count > 0 {
             
-            // Crea un calloutTemplate sino existe ya uno
-            if self.calloutTemplate == nil {
-                self.calloutTemplate = AGSCalloutTemplate()
-                self.calloutTemplate.titleTemplate = "${Match_addr}"
-                self.calloutTemplate.detailTemplate = "${DisplayY}\u{00b0} ${DisplayX}\u{00b0}"
-                self.graphicLayer.calloutDelegate = self.calloutTemplate
-            }
+            print("Entré!")
             
-            // Si no hay origen ni destino
-            if originLocation == nil && destinationLocation == nil {
-                self.graphicLayer.removeAllGraphics()
-            }
+            if (showAllResults == true) {
+                
+                // Si no hay origen ni destino
+                if originLocation == nil && destinationLocation == nil {
+                    self.graphicLayer.removeAllGraphics()
+                }
+                
+                // Crea un calloutTemplate sino existe ya uno
+                if self.calloutTemplate == nil {
+                    self.calloutTemplate = AGSCalloutTemplate()
+                    self.calloutTemplate.titleTemplate = "${Match_addr}"
+                    self.calloutTemplate.detailTemplate = "${DisplayY}\u{00b0} ${DisplayX}\u{00b0}"
+                    self.graphicLayer.calloutDelegate = self.calloutTemplate
+                }
             
-            // Agrega grafico de cada resultado
-            for result in results as! [AGSLocatorFindResult] {
-                self.graphicLayer.addGraphic(result.graphic)
-            }
             
-            // Zoom de los resultados
-            let extent = self.graphicLayer.fullEnvelope.mutableCopy() as! AGSMutableEnvelope
-            extent.expandByFactor(4.0)
-            zoomToEnvelope(extent, animated: true)
+                // Agrega grafico de cada resultado
+                for result in results as! [AGSLocatorFindResult] {
+                    self.graphicLayer.addGraphic(result.graphic)
+                }
+                
+                // Zoom de los resultados
+                let extent = self.graphicLayer.fullEnvelope.mutableCopy() as! AGSMutableEnvelope
+                extent.expandByFactor(4.0)
+                zoomToEnvelope(extent, animated: true)
+            }
+            else {
+                let locator = results[0] as! AGSLocatorFindResult
+                
+                if firstGraphic == true {
+                    originLocation = locator.graphic.geometry
+                }
+                else {
+                    destinationLocation = locator.graphic.geometry
+                }
+            }
         }
         // No hay resultados
         else {
@@ -153,9 +196,23 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     }
     
     @IBAction func routeButtonClicked(sender: AnyObject) {
-        self.routeTo(originLocation, destination: destinationLocation) // Trazar ruta, se pasa el AGSGeometry
-        originLocation = nil;
-        destinationLocation = nil;
+        
+        if originSearchBar.text == "" || destinationSearchBar.text == "" {
+            UIAlertView(title: "Faltan campos", message: "Ingrese un origen y destino", delegate: nil, cancelButtonTitle: "OK").show()
+        }
+        else {
+            if originLocation == nil || destinationLocation == nil {
+                showAllResults = false;
+                searchPlace(originSearchBar.text!);
+                firstGraphic = false;
+                searchPlace(destinationSearchBar.text!);
+            }
+            else {
+                self.routeTo(originLocation, destination: destinationLocation) // Trazar ruta, se pasa el AGSGeometry
+                originLocation = nil
+                destinationLocation = nil
+            }
+        }
     }
 
     // Evento click en "i" (botón), accessory de los graphics
