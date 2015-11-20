@@ -24,27 +24,29 @@ class ViewController: UIViewController, UISearchBarDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        originSearchBar.delegate = self
-        destinationSearchBar.delegate = self
-        
         // Agregar un mapa base tiled
         let url = NSURL(string: "http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer")
         let tiledLayer = AGSTiledMapServiceLayer(URL: url)
         self.mapView.addMapLayer(tiledLayer, withName: "Basemap Tiled Layer")
         
+        // Tablas
+        self.mapView.originTableView.scrollEnabled = true
+        self.mapView.originTableView.hidden = true
+        self.mapView.destinationTableView.scrollEnabled = true
+        self.mapView.destinationTableView.hidden = true
+        
+        
         // Establecer los delegates para escuchar eventos
         self.mapView.layerDelegate = mapView // Eventos de layer
         self.mapView.callout.delegate = mapView // Eventos de callout
+        self.originSearchBar.delegate = self
+        self.destinationSearchBar.delegate = self
+        self.mapView.originTableView.delegate = mapView
+        self.mapView.originTableView.dataSource = mapView
+        self.mapView.destinationTableView.delegate = mapView
+        self.mapView.destinationTableView.dataSource = mapView
         
-        self.mapView.getAccessToken() // Conseguir access_token
-        
-        mapView.autocompleteTableView = UITableView(frame: CGRectMake(30, 60, 200, 320), style: UITableViewStyle.Plain)
-        mapView.autocompleteTableView.delegate = mapView
-        mapView.autocompleteTableView.dataSource = mapView
-        mapView.autocompleteTableView.scrollEnabled = true
-        mapView.autocompleteTableView.hidden = true
-        
-        self.view.addSubview(mapView.autocompleteTableView)
+        self.mapView.getAccessToken() // Conseguir access_token de ArcGIS
     }
     
     override func didReceiveMemoryWarning() {
@@ -57,8 +59,23 @@ class ViewController: UIViewController, UISearchBarDelegate {
         self.mapView.startFunc(searchBar.text!) // Iniciar (Ver clase AGSMapViewController.swift)
     }
     
-    func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
-        self.mapView.placeAutocomplete(searchBar.text!)
+    func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
+        print("Texto está cambiando")
+        if searchBar == self.mapView.originSearchBar {
+            self.mapView.placeAutocomplete(searchBar.text!, whichBar: 1)
+        }
+        else {
+            self.mapView.placeAutocomplete(searchBar.text!, whichBar: 2)
+        }
+    }
+    
+    func searchBarTextDidEndEditing(searchBar: UISearchBar) {
+        if searchBar == self.mapView.originSearchBar {
+            self.mapView.originTableView.hidden = true
+        }
+        else {
+            self.mapView.destinationTableView.hidden = true
+        }
     }
 }
 

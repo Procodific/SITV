@@ -24,7 +24,9 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     var access_token: NSString! // Access_token a obtener de la aplicación ArcGIS
     
     var showAllResults : Bool = true
-    var firstGraphic : Bool = true;
+    var firstGraphic : Bool = true
+    
+    var whichTable : Int!
     
     // OUTLETS DEL UIVIEW
     @IBOutlet weak var directionsLabel: UILabel!
@@ -33,15 +35,22 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     @IBOutlet weak var routeButton: UIButton!
     @IBOutlet weak var originSearchBar: UISearchBar!
     @IBOutlet weak var destinationSearchBar: UISearchBar!
+    @IBOutlet weak var originTableView: UITableView!
+    @IBOutlet weak var destinationTableView: UITableView!
     
     // GOOGLE MAPS
-    var autocompleteTableView : UITableView!
     var lugares : Array<String> = []
     let baseURLGeocode = "https://maps.googleapis.com/maps/api/geocode/json?"
-    var lookupAddressResults: Dictionary<NSObject, AnyObject>!
-    var fetchedFormattedAddress: String!
-    var fetchedAddressLongitude: Double!
-    var fetchedAddressLatitude: Double!
+    
+    var lookupAddressResults: Dictionary<NSObject, AnyObject>! // origen
+    var fetchedFormattedAddress: String! // origen
+    var fetchedAddressLongitude: Double! // origen
+    var fetchedAddressLatitude: Double! // origen
+    
+    var destinationLookupAddressResults: Dictionary<NSObject, AnyObject>! // destino
+    var destinationFetchedFormattedAddress: String! // destino
+    var destinationFetchedAddressLongitude: Double! // destino
+    var destinationFetchedAddressLatitude: Double! // destino
 
     // ARCGIS
     var graphicLayer: AGSGraphicsLayer! // Layer de todos los gráficos
@@ -57,27 +66,45 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     var routeResult: AGSRouteResult!
     var currentDirectionGraphic: AGSDirectionGraphic!
     
-    func placeAutocomplete(text: String) {
+    func placeAutocomplete(text: String, whichBar: Int) {
     
         let filter = GMSAutocompleteFilter()
-        filter.type = GMSPlacesAutocompleteTypeFilter.Address
+        let topLeftCorner = CLLocationCoordinate2D(latitude: 18.490028574, longitude: -99.140625)
+        let bottomRightCorner = CLLocationCoordinate2D(latitude: 20.0868885056, longitude: -97.0751953125)
+        let bounds = GMSCoordinateBounds(coordinate: topLeftCorner, coordinate: bottomRightCorner)
+
+        filter.type = GMSPlacesAutocompleteTypeFilter.NoFilter
+        
         let placesClient = GMSPlacesClient()
         
-        placesClient.autocompleteQuery(text, bounds: nil, filter: filter, callback: { (results, error: NSError?) -> Void in
-            if let error = error {
-                print("Autocomplete error \(error)")
-            }
-            
-            for result in results! {
-                if let result = result as? GMSAutocompletePrediction {
-                    self.lugares.append(result.attributedFullText.string)
+        if !text.isEmpty {
+            placesClient.autocompleteQuery(text, bounds: bounds, filter: filter, callback: { (results, error: NSError?) -> Void in
+                
+                if let error = error {
+                    print("Autocomplete error \(error)")
                 }
-            }
-            
-            self.autocompleteTableView.hidden = false;
-            self.autocompleteTableView.reloadData()
-            
-        })
+                
+                self.lugares = []
+                
+                for result in results! {
+                    if let result = result as? GMSAutocompletePrediction {
+                        self.lugares.append(result.attributedFullText.string)
+                    }
+                }
+                
+                if whichBar == 1 {
+                    self.destinationTableView.hidden = true;
+                    self.originTableView.hidden = false;
+                    self.originTableView.reloadData()
+                }
+                else {
+                    self.originTableView.hidden = true;
+                    self.destinationTableView.hidden = false;
+                    self.destinationTableView.reloadData()
+                }
+                
+            })
+        }
     }
     
     // Al cargar el mapa
@@ -235,17 +262,9 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
             UIAlertView(title: "Faltan campos", message: "Ingrese un origen y destino", delegate: nil, cancelButtonTitle: "OK").show()
         }
         else {
-            if originLocation == nil || destinationLocation == nil {
-                showAllResults = false;
-                searchPlace(originSearchBar.text!);
-                firstGraphic = false;
-                searchPlace(destinationSearchBar.text!);
-            }
-            else {
                 self.routeTo(originLocation, destination: destinationLocation) // Trazar ruta, se pasa el AGSGeometry
                 originLocation = nil
                 destinationLocation = nil
-            }
         }
     }
 
@@ -271,13 +290,17 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
         // Ambos puntos se obtienen como Stops, y debe cambiarse
         // su sistema de latitud/longitud por el wgs84SpatialReference
         
-        // Primer punto
-        let lastStop = AGSStopGraphic(geometry: destination, symbol: nil, attributes: nil)
-        let second_point = AGSGeometryEngine.defaultGeometryEngine().projectGeometry(lastStop.geometry, toSpatialReference: AGSSpatialReference.wgs84SpatialReference()) as! AGSPoint
+        // Segundo punto
+        let second_point = AGSPoint(x: fetchedAddressLongitude, y: fetchedAddressLatitude, spatialReference: AGSSpatialReference.wgs84SpatialReference())
+        
+        //let lastStop = AGSStopGraphic(geometry: destination, symbol: nil, attributes: nil)
+        //let second_point = AGSGeometryEngine.defaultGeometryEngine().projectGeometry(lastStop.geometry, toSpatialReference: AGSSpatialReference.wgs84SpatialReference()) as! AGSPoint
         
         // Primer punto
-        let firstStop = AGSStopGraphic(geometry: origin, symbol: nil, attributes: nil)
-        let first_point = AGSGeometryEngine.defaultGeometryEngine().projectGeometry(firstStop.geometry, toSpatialReference: AGSSpatialReference.wgs84SpatialReference()) as! AGSPoint
+        let first_point = AGSPoint(x: destinationFetchedAddressLongitude, y: destinationFetchedAddressLatitude, spatialReference: AGSSpatialReference.wgs84SpatialReference())
+        
+        //let firstStop = AGSStopGraphic(geometry: origin, symbol: nil, attributes: nil)
+        //let first_point = AGSGeometryEngine.defaultGeometryEngine().projectGeometry(firstStop.geometry, toSpatialReference: AGSSpatialReference.wgs84SpatialReference()) as! AGSPoint
         
         /*
         // Segundo punto
@@ -285,7 +308,7 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
         let first_point = AGSGeometryEngine.defaultGeometryEngine().projectGeometry(firstStop.geometry, toSpatialReference: AGSSpatialReference.wgs84SpatialReference()) as! AGSPoint
         */
         
-        params.setStopsWithFeatures([firstStop, lastStop])
+        //params.setStopsWithFeatures([firstStop, lastStop])
         
         // Si no hay un routeTask
         if self.routeTask == nil {
@@ -373,12 +396,22 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
         let text = lugares[indexPath.row];
         
+        if tableView == originTableView {
+            print("Tabla origen\n");
+            whichTable = 1
+        }
+        else {
+            print("Tabla destino\n");
+            whichTable = 2
+        }
+        
         self.geocodeAddress(text, withCompletionHandler: { (status, success) -> Void in
             
         })
     }
     
     func geocodeAddress(address: String!, withCompletionHandler completionHandler: ((status: String, success: Bool) -> Void)) {
+        
         if let lookupAddress = address {
             var geocodeURLString = baseURLGeocode + "address=" + lookupAddress
             geocodeURLString = geocodeURLString.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
@@ -396,13 +429,26 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
                     
                     if status == "OK" {
                         let allResults = dictionary["results"] as! Array<Dictionary<NSObject, AnyObject>>
-                        self.lookupAddressResults = allResults[0]
                         
-                        // Keep the most important values.
-                        self.fetchedFormattedAddress = self.lookupAddressResults["formatted_address"] as! String
-                        let geometry = self.lookupAddressResults["geometry"] as! Dictionary<NSObject, AnyObject>
-                        self.fetchedAddressLongitude = ((geometry["location"] as! Dictionary<NSObject, AnyObject>)["lng"] as! NSNumber).doubleValue
-                        self.fetchedAddressLatitude = ((geometry["location"] as! Dictionary<NSObject, AnyObject>)["lat"] as! NSNumber).doubleValue
+                        // Evalua que tabla
+                        if self.whichTable == 1 {
+                            self.lookupAddressResults = allResults[0]
+                            self.fetchedFormattedAddress = self.lookupAddressResults["formatted_address"] as! String
+                            let geometry = self.lookupAddressResults["geometry"] as! Dictionary<NSObject, AnyObject>
+                            self.fetchedAddressLongitude = ((geometry["location"] as! Dictionary<NSObject, AnyObject>)["lng"] as! NSNumber).doubleValue
+                            self.fetchedAddressLatitude = ((geometry["location"] as! Dictionary<NSObject, AnyObject>)["lat"] as! NSNumber).doubleValue
+                            
+                            self.startFunc(self.fetchedFormattedAddress)
+                        }
+                        else {
+                            self.destinationLookupAddressResults = allResults[0]
+                            self.destinationFetchedFormattedAddress = self.lookupAddressResults["formatted_address"] as! String
+                            let geometry = self.destinationLookupAddressResults["geometry"] as! Dictionary<NSObject, AnyObject>
+                            self.destinationFetchedAddressLongitude = ((geometry["location"] as! Dictionary<NSObject, AnyObject>)["lng"] as! NSNumber).doubleValue
+                            self.destinationFetchedAddressLatitude = ((geometry["location"] as! Dictionary<NSObject, AnyObject>)["lat"] as! NSNumber).doubleValue
+                            
+                            self.startFunc(self.destinationFetchedFormattedAddress)
+                        }
                         
                         completionHandler(status: status, success: true)
                     }

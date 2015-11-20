@@ -35,7 +35,7 @@
 		32D8EC5267E5736FB0BB2E78 /* Pods-SITV.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SITV.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SITV/Pods-SITV.debug.xcconfig"; sourceTree = "<group>"; };
 		8C10A38B1B713796003E54C3 /* AGSMapViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AGSMapViewController.swift; sourceTree = "<group>"; };
 		8C409B951BC6D7A5001FCD4C /* plaza_dorada_puebla.gpx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = plaza_dorada_puebla.gpx; path = ../../../Downloads/plaza_dorada_puebla.gpx; sourceTree = "<group>"; };
-		8C53C3201BFEF16A0042049A /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; };
+		8C53C3201BFEF16A0042049A /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		8C96E6581B6D45FD00F181E7 /* SITV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SITV.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C96E65C1B6D45FD00F181E7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8C96E65D1B6D45FD00F181E7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
