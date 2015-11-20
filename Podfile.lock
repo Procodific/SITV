@@ -1,0 +1,13 @@
+PODS:
+  - ArcGIS-Runtime-SDK-iOS (10.2.5)
+  - GoogleMaps (1.10.5)
+
+DEPENDENCIES:
+  - ArcGIS-Runtime-SDK-iOS
+  - GoogleMaps
+
+SPEC CHECKSUMS:
+  ArcGIS-Runtime-SDK-iOS: 0d62980b8ed60c1ee8ca292c1c644e74e0e922aa
+  GoogleMaps: da51c62c338c2d9c47cdad470a0d1e0e4b8544e4
+
+COCOAPODS: 0.39.0

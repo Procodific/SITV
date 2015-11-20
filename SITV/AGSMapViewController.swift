@@ -8,8 +8,9 @@
 
 import UIKit
 import ArcGIS
+import GoogleMaps
 
-class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDelegate, AGSCalloutDelegate, AGSRouteTaskDelegate {
+class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDelegate, AGSCalloutDelegate, AGSRouteTaskDelegate, UITableViewDataSource, UITableViewDelegate {
 
     /*
     // Only override drawRect: if you perform custom drawing.
@@ -29,6 +30,9 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     @IBOutlet weak var routeButton: UIButton!
     @IBOutlet weak var originSearchBar: UISearchBar!
     @IBOutlet weak var destinationSearchBar: UISearchBar!
+    
+    var autocompleteTableView : UITableView!
+    var lugares : Array<String> = []
 
     var showAllResults : Bool = true
     var firstGraphic : Bool = true;
@@ -45,6 +49,29 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     var routeTask: AGSRouteTask!
     var routeResult: AGSRouteResult!
     var currentDirectionGraphic: AGSDirectionGraphic!
+    
+    func placeAutocomplete(text: String) {
+    
+        let filter = GMSAutocompleteFilter()
+        filter.type = GMSPlacesAutocompleteTypeFilter.Address
+        let placesClient = GMSPlacesClient()
+        
+        placesClient.autocompleteQuery(text, bounds: nil, filter: filter, callback: { (results, error: NSError?) -> Void in
+            if let error = error {
+                print("Autocomplete error \(error)")
+            }
+            
+            for result in results! {
+                if let result = result as? GMSAutocompletePrediction {
+                    self.lugares.append(result.attributedFullText.string)
+                }
+            }
+            
+            self.autocompleteTableView.hidden = false;
+            self.autocompleteTableView.reloadData()
+            
+        })
+    }
     
     // Al cargar el mapa
     func mapViewDidLoad(mapView: AGSMapView!) {
@@ -317,6 +344,27 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
         else {
             UIAlertView(title: "Sin rutas", message: "No se encontraron rutas", delegate: nil, cancelButtonTitle: "OK").show()
         }
+    }
+    
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let cellIdentifier = "autocompleteCell";
+        var cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier)
+        
+        if cell == nil {
+            cell = UITableViewCell(style: UITableViewCellStyle.Default, reuseIdentifier: cellIdentifier)
+        }
+        
+        cell?.textLabel?.text = lugares[indexPath.row]
+        
+        return cell!;
+    }
+    
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return lugares.count;
+    }
+    
+    func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
+        
     }
     
     // Botón prev

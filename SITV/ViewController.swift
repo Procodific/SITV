@@ -9,12 +9,13 @@
 import UIKit
 import ArcGIS
 
-
 class ViewController: UIViewController, UISearchBarDelegate {
     
     @IBOutlet var mapView: AGSMapViewController!
     @IBOutlet weak var originSearchBar: UISearchBar!
     @IBOutlet weak var destinationSearchBar: UISearchBar!
+    
+    
     
     override func prefersStatusBarHidden() -> Bool {
         return true
@@ -22,6 +23,9 @@ class ViewController: UIViewController, UISearchBarDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        originSearchBar.delegate = self
+        destinationSearchBar.delegate = self
         
         // Agregar un mapa base tiled
         let url = NSURL(string: "http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer")
@@ -33,6 +37,14 @@ class ViewController: UIViewController, UISearchBarDelegate {
         self.mapView.callout.delegate = mapView // Eventos de callout
         
         self.mapView.getAccessToken() // Conseguir access_token
+        
+        mapView.autocompleteTableView = UITableView(frame: CGRectMake(30, 60, 200, 320), style: UITableViewStyle.Plain)
+        mapView.autocompleteTableView.delegate = mapView
+        mapView.autocompleteTableView.dataSource = mapView
+        mapView.autocompleteTableView.scrollEnabled = true
+        mapView.autocompleteTableView.hidden = true
+        
+        self.view.addSubview(mapView.autocompleteTableView)
     }
     
     override func didReceiveMemoryWarning() {
@@ -45,5 +57,8 @@ class ViewController: UIViewController, UISearchBarDelegate {
         self.mapView.startFunc(searchBar.text!) // Iniciar (Ver clase AGSMapViewController.swift)
     }
     
+    func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
+        self.mapView.placeAutocomplete(searchBar.text!)
+    }
 }
 
