@@ -33,33 +33,31 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     @IBOutlet weak var prevBtn: UIBarButtonItem!
     @IBOutlet weak var nextBtn: UIBarButtonItem!
     @IBOutlet weak var routeButton: UIButton!
+    @IBOutlet weak var clearRouteButton: UIButton!
     @IBOutlet weak var originSearchBar: UISearchBar!
     @IBOutlet weak var destinationSearchBar: UISearchBar!
     @IBOutlet weak var originTableView: UITableView!
     @IBOutlet weak var destinationTableView: UITableView!
     
     // GOOGLE MAPS
-    var lugares : Array<String> = []
-    let baseURLGeocode = "https://maps.googleapis.com/maps/api/geocode/json?"
+    var lugares = [Int: [String]]()
     
     var lookupAddressResults: Dictionary<NSObject, AnyObject>! // origen
     var fetchedFormattedAddress: String! // origen
     var fetchedAddressLongitude: Double! // origen
     var fetchedAddressLatitude: Double! // origen
     
+    var originCoordinate : CLLocationCoordinate2D!
+    
     var destinationLookupAddressResults: Dictionary<NSObject, AnyObject>! // destino
     var destinationFetchedFormattedAddress: String! // destino
     var destinationFetchedAddressLongitude: Double! // destino
     var destinationFetchedAddressLatitude: Double! // destino
+    
+    var destinationCoordinate : CLLocationCoordinate2D!
 
     // ARCGIS
     var graphicLayer: AGSGraphicsLayer! // Layer de todos los gráficos
-    var locator: AGSLocator! // Locator de ArcGIS
-    var calloutTemplate: AGSCalloutTemplate!
-    
-    // Origen y Destino
-    var originLocation: AGSGeometry!
-    var destinationLocation: AGSGeometry!
     
     // Elementos de rutas
     var routeTask: AGSRouteTask!
@@ -84,11 +82,11 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
                     print("Autocomplete error \(error)")
                 }
                 
-                self.lugares = []
-                
+                self.lugares = [Int: [String]]()
+                var index = 0
                 for result in results! {
                     if let result = result as? GMSAutocompletePrediction {
-                        self.lugares.append(result.attributedFullText.string)
+                        self.lugares[index++] = [result.placeID, result.attributedFullText.string]
                     }
                 }
                 
@@ -146,8 +144,7 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
     }
     
     // Función inicial
-    func startFunc(text: String) {
-        
+    func startFunc() {
         // Si no hay un layer
         if self.graphicLayer == nil {
             self.graphicLayer = AGSGraphicsLayer() // Layer que tendrá los resultados de geolocalización
@@ -161,332 +158,40 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
             let renderer = AGSSimpleRenderer(symbol: pushpin) // Renderer con el marker
             self.graphicLayer.renderer = renderer // Asigna el renderer al layer
         }
-        
-        // Si no hay un locator
-        if self.locator == nil {
-            // Crear el locator desde REST ArcGIS
-            // y asignar el delegate para escuchar eventos
-            
-            // URL del servicio de geolocalización
-            let url = NSURL(string: "http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer")
-            self.locator = AGSLocator(URL: url) // Locator con la url del servicio
-            self.locator.delegate = self // Asigna el delegate del locator
-        }
-        
-        // Parametros del locator (desde donde buscar)
-        let params = AGSLocatorFindParameters()
-        params.text = text
-        params.outFields = ["*"]
-        params.outSpatialReference = self.spatialReference
-        params.location = AGSPoint(x: 0, y: 0, spatialReference: nil)
-        
-        self.locator.findWithParameters(params) // Ejecución del servicio geolocalización en background
     }
     
-    func searchPlace(text: String) {
-        // Si no hay un locator
-        if self.locator == nil {
-            // Crear el locator desde REST ArcGIS
-            // y asignar el delegate para escuchar eventos
-            
-            // URL del servicio de geolocalización
-            let url = NSURL(string: "http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer")
-            self.locator = AGSLocator(URL: url) // Locator con la url del servicio
-            self.locator.delegate = self // Asigna el delegate del locator
-        }
+    // Consigue los Details de un Place (Google)
+    func getPlaceDetails(placeID: String) {
         
-        // Parametros del locator (desde donde buscar)
-        let params = AGSLocatorFindParameters()
-        params.text = text
-        params.outFields = ["*"]
-        params.outSpatialReference = self.spatialReference
-        params.location = AGSPoint(x: 0, y: 0, spatialReference: nil)
+        let placesClient = GMSPlacesClient()
         
-        self.locator.findWithParameters(params) // Ejecución del servicio geolocalización en background
-    }
-    
-    // Ejecución correcta del locator
-    func locator(locator: AGSLocator!, operation op: NSOperation!, didFind results: [AnyObject]!) {
-        
-        // Si hay resultados
-        if results != nil || results.count > 0 {
-            
-            print("Entré!")
-            
-            if (showAllResults == true) {
-                
-                // Si no hay origen ni destino
-                if originLocation == nil && destinationLocation == nil {
-                    self.graphicLayer.removeAllGraphics()
-                }
-                
-                // Crea un calloutTemplate sino existe ya uno
-                if self.calloutTemplate == nil {
-                    self.calloutTemplate = AGSCalloutTemplate()
-                    self.calloutTemplate.titleTemplate = "${Match_addr}"
-                    self.calloutTemplate.detailTemplate = "${DisplayY}\u{00b0} ${DisplayX}\u{00b0}"
-                    self.graphicLayer.calloutDelegate = self.calloutTemplate
-                }
-            
-            
-                // Agrega grafico de cada resultado
-                for result in results as! [AGSLocatorFindResult] {
-                    self.graphicLayer.addGraphic(result.graphic)
-                }
-                
-                // Zoom de los resultados
-                let extent = self.graphicLayer.fullEnvelope.mutableCopy() as! AGSMutableEnvelope
-                extent.expandByFactor(4.0)
-                zoomToEnvelope(extent, animated: true)
+        placesClient.lookUpPlaceID(placeID, callback: { (place: GMSPlace?, error: NSError?) -> Void in
+            if let error = error {
+                print("lookup place id query error: \(error.localizedDescription)")
+                return
             }
-            else {
-                let locator = results[0] as! AGSLocatorFindResult
+            
+            if let place = place {
                 
-                if firstGraphic == true {
-                    originLocation = locator.graphic.geometry
+                if self.whichTable == 1 {
+                    self.originCoordinate = place.coordinate
                 }
                 else {
-                    destinationLocation = locator.graphic.geometry
+                    self.destinationCoordinate = place.coordinate
                 }
+                
+                if self.originCoordinate != nil && self.destinationCoordinate != nil {
+                    self.startFunc();
+                    self.routeButton.enabled = true
+                }
+                
+            } else {
+                UIAlertView(title: "Error", message: "No se pudo encontrar el lugar", delegate: nil, cancelButtonTitle: "OK").show()
             }
-        }
-        // No hay resultados
-        else {
-            UIAlertView(title: "Sin resultados", message: "No se encontraron resultados", delegate: nil, cancelButtonTitle: "OK").show()
-        }
-    }
-    
-    @IBAction func routeButtonClicked(sender: AnyObject) {
-        
-        if originSearchBar.text == "" || destinationSearchBar.text == "" {
-            UIAlertView(title: "Faltan campos", message: "Ingrese un origen y destino", delegate: nil, cancelButtonTitle: "OK").show()
-        }
-        else {
-                self.routeTo(originLocation, destination: destinationLocation) // Trazar ruta, se pasa el AGSGeometry
-                originLocation = nil
-                destinationLocation = nil
-        }
-    }
-
-    // Evento click en "i" (botón), accessory de los graphics
-    func didClickAccessoryButtonForCallout(callout: AGSCallout!) {
-        let graphic = callout.representedObject as! AGSGraphic // Obtiene el objeto del click
-        
-        if originLocation == nil {
-            self.graphicLayer.removeAllGraphics();
-            self.graphicLayer.addGraphic(graphic)
-            originLocation = graphic.geometry // Conseguir el AGSGeometry
-        }
-        else {
-            self.graphicLayer.addGraphic(graphic)
-            destinationLocation = graphic.geometry // Conseguir el AGSGeometry
-        }
-    }
-    
-    // Funcion que traza ruta dado un destino
-    func routeTo(origin: AGSGeometry, destination: AGSGeometry) {
-        let params = AGSRouteTaskParameters() // Parametros del RouteTask
-        
-        // Ambos puntos se obtienen como Stops, y debe cambiarse
-        // su sistema de latitud/longitud por el wgs84SpatialReference
-        
-        // Segundo punto
-        let second_point = AGSPoint(x: fetchedAddressLongitude, y: fetchedAddressLatitude, spatialReference: AGSSpatialReference.wgs84SpatialReference())
-        
-        //let lastStop = AGSStopGraphic(geometry: destination, symbol: nil, attributes: nil)
-        //let second_point = AGSGeometryEngine.defaultGeometryEngine().projectGeometry(lastStop.geometry, toSpatialReference: AGSSpatialReference.wgs84SpatialReference()) as! AGSPoint
-        
-        // Primer punto
-        let first_point = AGSPoint(x: destinationFetchedAddressLongitude, y: destinationFetchedAddressLatitude, spatialReference: AGSSpatialReference.wgs84SpatialReference())
-        
-        //let firstStop = AGSStopGraphic(geometry: origin, symbol: nil, attributes: nil)
-        //let first_point = AGSGeometryEngine.defaultGeometryEngine().projectGeometry(firstStop.geometry, toSpatialReference: AGSSpatialReference.wgs84SpatialReference()) as! AGSPoint
-        
-        /*
-        // Segundo punto
-        let firstStop = AGSStopGraphic(geometry: self.locationDisplay.mapLocation(), symbol: nil, attributes: nil)
-        let first_point = AGSGeometryEngine.defaultGeometryEngine().projectGeometry(firstStop.geometry, toSpatialReference: AGSSpatialReference.wgs84SpatialReference()) as! AGSPoint
-        */
-        
-        //params.setStopsWithFeatures([firstStop, lastStop])
-        
-        // Si no hay un routeTask
-        if self.routeTask == nil {
-            let serviceURL = "http://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve?token=\(self.access_token)&stops=\(first_point.x),\(first_point.y);\(second_point.x),\(second_point.y)&directionsLanguage=es&f=json"
-            
-            print(serviceURL)
-            
-            self.routeTask = AGSRouteTask(URL: NSURL(string: serviceURL)) // RouteTask con el servicio
-            self.routeTask.delegate = self // Delegate del routeTask
-        }
-        
-        // Regresar toda la ruta
-        params.returnRouteGraphics = true
-        
-        // Regresar direcciones de vueltas
-        params.returnDirections = true
-        
-        // Evitar ordenamiento de stops
-        params.findBestSequence = false
-        params.preserveFirstStop = true
-        params.preserveLastStop = true
-        
-        // ensure the graphics are returned in our maps spatial reference
-        params.outSpatialReference = self.spatialReference
-        
-        params.ignoreInvalidLocations = false // Ignorar stops inválidos
-        self.routeTask.solveWithParameters(params) // Ejecutar el servicio
-    }
-    
-    // Ejecución correcta del routeTask
-    func routeTask(routeTask: AGSRouteTask!, operation op: NSOperation!, didSolveWithResult routeTaskResult: AGSRouteTaskResult!) {
-        
-        self.directionsLabel.text = "Ruta calculada" // Texto del label
-        
-        // Remover la ruta trazada, si hay una
-        if self.routeResult != nil {
-            self.graphicLayer.removeGraphic(self.routeResult.routeGraphic)
-        }
-        
-        // Si hay resultados de rutas
-        if routeTaskResult.routeResults != nil {
-            
-            // Se sabe que solo hay 1 ruta
-            self.routeResult = routeTaskResult.routeResults[0] as? AGSRouteResult // Obtiene ruta [0]
-            
-            // Si no se ha trazado la ruta
-            if self.routeResult != nil && self.routeResult.routeGraphic != nil {
-                
-                // Se mostrará la ruta con la línea siguiente
-                let yellowLine = AGSSimpleLineSymbol(color: UIColor.orangeColor(), width: 8.0)
-                self.routeResult.routeGraphic.symbol = yellowLine
-                
-                // Se agrega el graphic al layer
-                self.graphicLayer.addGraphic(self.routeResult.routeGraphic)
-                
-                self.nextBtn.enabled = true // Enable del botón next para pasar las direcciones
-                self.prevBtn.enabled = false
-                self.currentDirectionGraphic = nil
-                self.zoomToGeometry(self.routeResult.routeGraphic.geometry, withPadding: 100, animated: true)
-            }
-        }
-        // No hubo rutas
-        else {
-            UIAlertView(title: "Sin rutas", message: "No se encontraron rutas", delegate: nil, cancelButtonTitle: "OK").show()
-        }
-    }
-    
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cellIdentifier = "autocompleteCell";
-        var cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier)
-        
-        if cell == nil {
-            cell = UITableViewCell(style: UITableViewCellStyle.Default, reuseIdentifier: cellIdentifier)
-        }
-        
-        cell?.textLabel?.text = lugares[indexPath.row]
-        
-        return cell!;
-    }
-    
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return lugares.count;
-    }
-    
-    func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
-        let text = lugares[indexPath.row];
-        
-        if tableView == originTableView {
-            print("Tabla origen\n");
-            whichTable = 1
-        }
-        else {
-            print("Tabla destino\n");
-            whichTable = 2
-        }
-        
-        self.geocodeAddress(text, withCompletionHandler: { (status, success) -> Void in
-            
         })
     }
     
-    func geocodeAddress(address: String!, withCompletionHandler completionHandler: ((status: String, success: Bool) -> Void)) {
-        
-        if let lookupAddress = address {
-            var geocodeURLString = baseURLGeocode + "address=" + lookupAddress
-            geocodeURLString = geocodeURLString.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
-            
-            let geocodeURL = NSURL(string: geocodeURLString)
-            
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                let geocodingResultsData = NSData(contentsOfURL: geocodeURL!)
-                
-                do {
-                    let dictionary: Dictionary<NSObject, AnyObject> = try NSJSONSerialization.JSONObjectWithData(geocodingResultsData!, options: NSJSONReadingOptions.MutableContainers) as! Dictionary<NSObject, AnyObject>
-                    
-                    // Get the response status.
-                    let status = dictionary["status"] as! String
-                    
-                    if status == "OK" {
-                        let allResults = dictionary["results"] as! Array<Dictionary<NSObject, AnyObject>>
-                        
-                        // Evalua que tabla
-                        if self.whichTable == 1 {
-                            self.lookupAddressResults = allResults[0]
-                            self.fetchedFormattedAddress = self.lookupAddressResults["formatted_address"] as! String
-                            let geometry = self.lookupAddressResults["geometry"] as! Dictionary<NSObject, AnyObject>
-                            self.fetchedAddressLongitude = ((geometry["location"] as! Dictionary<NSObject, AnyObject>)["lng"] as! NSNumber).doubleValue
-                            self.fetchedAddressLatitude = ((geometry["location"] as! Dictionary<NSObject, AnyObject>)["lat"] as! NSNumber).doubleValue
-                            
-                            self.startFunc(self.fetchedFormattedAddress)
-                        }
-                        else {
-                            self.destinationLookupAddressResults = allResults[0]
-                            self.destinationFetchedFormattedAddress = self.lookupAddressResults["formatted_address"] as! String
-                            let geometry = self.destinationLookupAddressResults["geometry"] as! Dictionary<NSObject, AnyObject>
-                            self.destinationFetchedAddressLongitude = ((geometry["location"] as! Dictionary<NSObject, AnyObject>)["lng"] as! NSNumber).doubleValue
-                            self.destinationFetchedAddressLatitude = ((geometry["location"] as! Dictionary<NSObject, AnyObject>)["lat"] as! NSNumber).doubleValue
-                            
-                            self.startFunc(self.destinationFetchedFormattedAddress)
-                        }
-                        
-                        completionHandler(status: status, success: true)
-                    }
-                    else {
-                        completionHandler(status: status, success: false)
-                    }
-                } catch {
-                    completionHandler(status: "", success: false)
-                }
-            })
-        }
-    }
-    
-    // Botón prev
-    @IBAction func prevBtnClicked(sender: AnyObject) {
-        var index = 0
-        
-        if self.currentDirectionGraphic != nil {
-            if let currentIndex = (self.routeResult.directions.graphics as! [AGSDirectionGraphic]).indexOf(self.currentDirectionGraphic) {
-                index = currentIndex - 1
-            }
-        }
-        self.displayDirectionForIndex(index)
-    }
-    
-    // Botón next
-    @IBAction func nextBtnClicked(sender: AnyObject) {
-        var index = 0
-        
-        if self.currentDirectionGraphic != nil {
-            if let currentIndex = (self.routeResult.directions.graphics as! [AGSDirectionGraphic]).indexOf(self.currentDirectionGraphic) {
-                index = currentIndex + 1
-            }
-        }
-        self.displayDirectionForIndex(index)
-    }
-    
-    // Función de mostrar la dirección i-esima
+    // Muestra la dirección i-esima
     func displayDirectionForIndex(index:Int) {
         self.graphicLayer.removeGraphic(self.currentDirectionGraphic) // Quitar la dirección anterior
         
@@ -529,5 +234,167 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
         else {
             self.prevBtn.enabled = false
         }
+    }
+    
+    // Traza ruta dado un destino
+    func routeTo() {
+        let params = AGSRouteTaskParameters() // Parametros del RouteTask
+        
+        // Ambos puntos se obtienen como Stops, y debe cambiarse
+        // su sistema de latitud/longitud por el wgs84SpatialReference
+        
+        // Segundo punto
+        let first_point = AGSPoint(x: originCoordinate.longitude, y: originCoordinate.latitude, spatialReference: AGSSpatialReference.wgs84SpatialReference())
+        
+        // Primer punto
+        let second_point = AGSPoint(x: destinationCoordinate.longitude, y: destinationCoordinate.latitude, spatialReference: AGSSpatialReference.wgs84SpatialReference())
+        
+        // Si no hay un routeTask
+        if self.routeTask == nil {
+            let serviceURL = "http://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve?token=\(self.access_token)&stops=\(first_point.x),\(first_point.y);\(second_point.x),\(second_point.y)&directionsLanguage=es&f=json"
+            
+            print(serviceURL)
+            
+            self.routeTask = AGSRouteTask(URL: NSURL(string: serviceURL)) // RouteTask con el servicio
+            self.routeTask.delegate = self // Delegate del routeTask
+        }
+        
+        // Regresar toda la ruta
+        params.returnRouteGraphics = true
+        
+        // Regresar direcciones de vueltas
+        params.returnDirections = true
+        
+        // Evitar ordenamiento de stops
+        params.findBestSequence = false
+        params.preserveFirstStop = true
+        params.preserveLastStop = true
+        
+        // ensure the graphics are returned in our maps spatial reference
+        params.outSpatialReference = self.spatialReference
+        
+        params.ignoreInvalidLocations = false // Ignorar stops inválidos
+        self.routeTask.solveWithParameters(params) // Ejecutar el servicio
+    }
+    
+    // Ejecución correcta del routeTask
+    func routeTask(routeTask: AGSRouteTask!, operation op: NSOperation!, didSolveWithResult routeTaskResult: AGSRouteTaskResult!) {
+        
+        self.directionsLabel.text = "Ruta calculada" // Texto del label
+        self.routeButton.enabled = false
+        self.clearRouteButton.enabled = true
+        
+        // Remover la ruta trazada, si hay una
+        if self.routeResult != nil {
+            self.graphicLayer.removeGraphic(self.routeResult.routeGraphic)
+        }
+        
+        // Si hay resultados de rutas
+        if routeTaskResult.routeResults != nil {
+            
+            // Se sabe que solo hay 1 ruta
+            self.routeResult = routeTaskResult.routeResults[0] as? AGSRouteResult // Obtiene ruta [0]
+            
+            // Si no se ha trazado la ruta
+            if self.routeResult != nil && self.routeResult.routeGraphic != nil {
+                
+                // Se mostrará la ruta con la línea siguiente
+                let yellowLine = AGSSimpleLineSymbol(color: UIColor.orangeColor(), width: 8.0)
+                self.routeResult.routeGraphic.symbol = yellowLine
+                
+                // Se agrega el graphic al layer
+                self.graphicLayer.addGraphic(self.routeResult.routeGraphic)
+                
+                self.nextBtn.enabled = true // Enable del botón next para pasar las direcciones
+                self.prevBtn.enabled = false
+                self.currentDirectionGraphic = nil
+                self.zoomToGeometry(self.routeResult.routeGraphic.geometry, withPadding: 100, animated: true)
+            }
+        }
+        // No hubo rutas
+        else {
+            UIAlertView(title: "Sin rutas", message: "No se encontraron rutas", delegate: nil, cancelButtonTitle: "OK").show()
+        }
+    }
+    
+    // TableView DataSource and Delegate
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let cellIdentifier = "autocompleteCell";
+        var cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier)
+        
+        if cell == nil {
+            cell = UITableViewCell(style: UITableViewCellStyle.Default, reuseIdentifier: cellIdentifier)
+        }
+        
+        cell?.textLabel?.text = lugares[indexPath.row]![1]
+        
+        return cell!;
+    }
+    
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return lugares.count;
+    }
+    
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        let placeID = lugares[indexPath.row]![0];
+        
+        if tableView == originTableView {
+            whichTable = 1
+            self.originSearchBar.text = lugares[indexPath.row]![1]
+            self.originSearchBar.resignFirstResponder()
+            self.originTableView.hidden = true
+        }
+        else {
+            whichTable = 2
+            self.destinationSearchBar.text = lugares[indexPath.row]![1]
+            self.destinationSearchBar.resignFirstResponder()
+            self.destinationTableView.hidden = true
+        }
+        
+        self.getPlaceDetails(placeID)
+    }
+    
+    // Botón consultar ruta
+    @IBAction func routeButtonClicked(sender: AnyObject) {
+        if originSearchBar.text == "" || destinationSearchBar.text == "" {
+            UIAlertView(title: "Faltan campos", message: "Ingrese un origen y destino", delegate: nil, cancelButtonTitle: "OK").show()
+        }
+        else {
+            self.routeTo() // Trazar ruta, se pasa el AGSGeometry
+        }
+    }
+    
+    @IBAction func clearRouteButtonClicked(sender: AnyObject) {
+        self.originSearchBar.text = ""
+        self.destinationSearchBar.text = ""
+        self.originCoordinate = nil
+        self.destinationCoordinate = nil
+        self.graphicLayer.removeAllGraphics()
+        
+        self.clearRouteButton.enabled = false
+    }
+    
+    // Botón prev
+    @IBAction func prevBtnClicked(sender: AnyObject) {
+        var index = 0
+        
+        if self.currentDirectionGraphic != nil {
+            if let currentIndex = (self.routeResult.directions.graphics as! [AGSDirectionGraphic]).indexOf(self.currentDirectionGraphic) {
+                index = currentIndex - 1
+            }
+        }
+        self.displayDirectionForIndex(index)
+    }
+    
+    // Botón next
+    @IBAction func nextBtnClicked(sender: AnyObject) {
+        var index = 0
+        
+        if self.currentDirectionGraphic != nil {
+            if let currentIndex = (self.routeResult.directions.graphics as! [AGSDirectionGraphic]).indexOf(self.currentDirectionGraphic) {
+                index = currentIndex + 1
+            }
+        }
+        self.displayDirectionForIndex(index)
     }
 }
