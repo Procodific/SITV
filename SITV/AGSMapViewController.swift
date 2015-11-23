@@ -370,6 +370,7 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
         self.originCoordinate = nil
         self.destinationCoordinate = nil
         self.graphicLayer.removeAllGraphics()
+        self.routeTask = nil
         
         self.clearRouteButton.enabled = false
     }
