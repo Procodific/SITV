@@ -360,6 +360,10 @@ class AGSMapViewController: AGSMapView, AGSMapViewLayerDelegate, AGSLocatorDeleg
             UIAlertView(title: "Faltan campos", message: "Ingrese un origen y destino", delegate: nil, cancelButtonTitle: "OK").show()
         }
         else {
+            
+            self.graphicLayer.removeAllGraphics()
+            self.routeTask = nil
+            
             self.routeTo() // Trazar ruta, se pasa el AGSGeometry
         }
     }

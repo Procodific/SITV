@@ -24,7 +24,11 @@
                                 <animations/>
                                 <color key="tintColor" red="0.1333333333" green="0.73725490199999999" blue="0.87843137250000003" alpha="1" colorSpace="calibratedRGB"/>
                                 <color key="barTintColor" red="0.74901960784313726" green="0.74901960784313726" blue="0.76862745098039209" alpha="1" colorSpace="calibratedRGB"/>
-                                <textInputTraits key="textInputTraits" autocorrectionType="yes" spellCheckingType="yes"/>
+                                <textInputTraits key="textInputTraits" autocorrectionType="yes" spellCheckingType="yes" returnKeyType="next" enablesReturnKeyAutomatically="YES"/>
+                                <scopeButtonTitles>
+                                    <string>Title</string>
+                                    <string>Title</string>
+                                </scopeButtonTitles>
                                 <connections>
                                     <outlet property="delegate" destination="vXZ-lx-hvc" id="xPQ-N6-aCp"/>
                                 </connections>
@@ -32,7 +36,7 @@
                             <searchBar contentMode="redraw" text="BUAP, Pue" prompt="Ingrese un lugar o dirección" placeholder="Lugar" translatesAutoresizingMaskIntoConstraints="NO" id="Ygi-2D-r6h">
                                 <rect key="frame" x="0.0" y="75" width="600" height="75"/>
                                 <animations/>
-                                <textInputTraits key="textInputTraits"/>
+                                <textInputTraits key="textInputTraits" returnKeyType="search"/>
                                 <connections>
                                     <outlet property="delegate" destination="vXZ-lx-hvc" id="SSI-gw-QEg"/>
                                 </connections>

@@ -17,7 +17,6 @@
 		8C96E6651B6D45FD00F181E7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8C96E6641B6D45FD00F181E7 /* Images.xcassets */; };
 		8C96E6681B6D45FD00F181E7 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8C96E6661B6D45FD00F181E7 /* LaunchScreen.xib */; };
 		8C96E6741B6D45FD00F181E7 /* SITVTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C96E6731B6D45FD00F181E7 /* SITVTests.swift */; };
-		8C96E67E1B6D46BB00F181E7 /* ArcGIS.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 8C96E67D1B6D46BB00F181E7 /* ArcGIS.bundle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,7 +45,6 @@
 		8C96E66D1B6D45FD00F181E7 /* SITVTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SITVTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C96E6721B6D45FD00F181E7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8C96E6731B6D45FD00F181E7 /* SITVTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SITVTests.swift; sourceTree = "<group>"; };
-		8C96E67D1B6D46BB00F181E7 /* ArcGIS.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = ArcGIS.bundle; path = ../../../Library/SDKs/ArcGIS/iOS/ArcGIS.framework/Versions/Current/Resources/ArcGIS.bundle; sourceTree = "<group>"; };
 		DE33863438F0E22358C5D351 /* Pods_SITV.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SITV.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -92,7 +90,6 @@
 				8C409B951BC6D7A5001FCD4C /* plaza_dorada_puebla.gpx */,
 				8C96E65A1B6D45FD00F181E7 /* SITV */,
 				8C96E6701B6D45FD00F181E7 /* SITVTests */,
-				8C96E67D1B6D46BB00F181E7 /* ArcGIS.bundle */,
 				8C96E6591B6D45FD00F181E7 /* Products */,
 				17C5D7343025B5D20FB0B88F /* Pods */,
 				2DB7C30637CA4A5650276DF8 /* Frameworks */,
@@ -238,7 +235,6 @@
 				8C96E6631B6D45FD00F181E7 /* Main.storyboard in Resources */,
 				8C409B961BC6D7A5001FCD4C /* plaza_dorada_puebla.gpx in Resources */,
 				8C96E6681B6D45FD00F181E7 /* LaunchScreen.xib in Resources */,
-				8C96E67E1B6D46BB00F181E7 /* ArcGIS.bundle in Resources */,
 				8C96E6651B6D45FD00F181E7 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -15,8 +15,6 @@ class ViewController: UIViewController, UISearchBarDelegate {
     @IBOutlet weak var originSearchBar: UISearchBar!
     @IBOutlet weak var destinationSearchBar: UISearchBar!
     
-    
-    
     override func prefersStatusBarHidden() -> Bool {
         return true
     }
@@ -53,6 +51,12 @@ class ViewController: UIViewController, UISearchBarDelegate {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    func searchBarSearchButtonClicked(searchBar: UISearchBar) {
+        if searchBar == self.originSearchBar {
+            destinationSearchBar.resignFirstResponder()
+        }
     }
     
     func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
