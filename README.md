@@ -1,15 +1,21 @@
-DORI iOS
+SITV iOS
 ====================
 
 About
 -----
-DORI app en iOS.
+SITV app en iOS.
 
-Dudas, comentarios y demás:[suericgp@gmail.com]
+Dudas, comentarios y cartitas a:[sueric@kliento.mx]
 
 
-¿Cómo instalar?
+
+Cómo instalar?
 --------------
 
-1. Instalar XCode
-2. Correr la app en device o simulador
+1. Instala XCode
+2. Instala y actualiza `gem`
+2. Instala [Cocoapods](http://guides.cocoapods.org/using/getting-started.html) con `$ sudo gem install cocoapods`
+3. corre `pod setup`
+4. Dentro del folder del proyecto corre: `pod install`
+5. Abre el `xcodeworkspace`
+6. Corre en device o simulador
